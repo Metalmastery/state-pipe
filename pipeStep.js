@@ -1,5 +1,8 @@
 function PipeStep (fn, context, type){
-    this.type = this.checkType(type);
+    if (this.checkType(type)) {
+        this.type = type;
+    }
+
     this.context = this.checkContext(context);
     this.fn = null;
     this.handler = new Flowhandler();
