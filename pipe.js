@@ -47,6 +47,9 @@ Pipe.prototype.process = function (fn, context) {
     return this;
 };
 
+// alias
+Pipe.prototype.do = Pipe.prototype.process;
+
 Pipe.prototype.error = function (fn, context) {
     var step = new PipeStep(fn, context, this._stateCallback, PipeStep.prototype.pipeStepTypes.ERROR_HANDLER);
 
