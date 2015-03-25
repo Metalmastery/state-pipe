@@ -45,12 +45,10 @@ Flowhandler.prototype._stateCallback = function () {
 };
 
 Flowhandler.prototype.attachFunction = function (name, fn) {
-    console.log('attachFunction', name);
     if (this._locked) return false;
 
     if (typeof name === 'string' && typeof fn === 'function') {
         if (this._callbackNames[name]) {
-            //console.log(name, fn);
             this[this._callbackNames[name]] = fn ;
         }
     }
