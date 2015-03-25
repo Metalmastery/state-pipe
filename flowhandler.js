@@ -1,6 +1,7 @@
-function Flowhandler (){
-    this.state = null;
-    this._locked = null;
+function Flowhandler (stateCallback){
+    this._locked = false;
+
+    this.attachFunction('state', stateCallback)
 }
 
 Flowhandler.prototype._callbackNames = {
@@ -23,6 +24,12 @@ Flowhandler.prototype.error = function (data) {
 
 Flowhandler.prototype.state = function (data) {
    // todo implement state change
+
+    if (this._locked) return false;
+    this._stateCallback(data);
+    this.lock();
+
+    console.log('Flowhandler state change', data);
 };
 
 Flowhandler.prototype._nextCallback = function () {
@@ -38,10 +45,12 @@ Flowhandler.prototype._stateCallback = function () {
 };
 
 Flowhandler.prototype.attachFunction = function (name, fn) {
+    console.log('attachFunction', name);
     if (this._locked) return false;
 
     if (typeof name === 'string' && typeof fn === 'function') {
         if (this._callbackNames[name]) {
+            //console.log(name, fn);
             this[this._callbackNames[name]] = fn ;
         }
     }

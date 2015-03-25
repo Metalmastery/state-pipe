@@ -1,15 +1,17 @@
-function PipeStep (fn, context, type){
+function PipeStep (fn, context, stateCallback, type){
     if (this.checkType(type)) {
         this.type = type;
     }
 
     this.context = this.checkContext(context);
     this.fn = null;
-    this.handler = new Flowhandler();
+    this.handler = new Flowhandler(stateCallback);
 
     if (typeof fn === 'function') {
         this.fn = fn;
     }
+
+    this.data = null;
 
     this.id = this.generateId();
 }
@@ -63,7 +65,7 @@ PipeStep.prototype.createHandler = function (nextCallback, errorCallback) {
         console.log(arguments);
     };
 
-    this.handler = new Flowhandler(nextCallback, errorCallback, stateCallback)
+    this.handler = new Flowhandler(stateCallback)
 };
 
 PipeStep.prototype._linkTo = function (pipeStep, type) {
@@ -71,21 +73,25 @@ PipeStep.prototype._linkTo = function (pipeStep, type) {
 };
 
 PipeStep.prototype.linkToProcess = function (pipeStep) {
+    var self = this;
     if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
         return false;
     }
 
     this.handler.attachFunction('next', function(data){
+        self.data = data;
         pipeStep.fn.apply(pipeStep.context, [data, pipeStep.handler]);
     });
 };
 
 PipeStep.prototype.linkToErrorHandler = function (pipeStep) {
+    var self = this;
     if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
         return false;
     }
 
     this.handler.attachFunction('error', function(data){
+        self.error = data;
         pipeStep.fn.apply(pipeStep.context, [data, pipeStep.handler]);
     });
 };

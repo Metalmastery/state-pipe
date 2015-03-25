@@ -1,5 +1,14 @@
-function Pipe(name){
-    this.name = name;
+function Pipe(stateName, stateCallback){
+
+    if (typeof stateName !== 'string') {
+        throw new Error('');
+    }
+
+    if (typeof stateCallback === 'function') {
+        this._stateCallback = stateCallback;
+    }
+
+    this.name = stateName;
 
     this.data = null;
     this.dataStates = [];
@@ -8,11 +17,22 @@ function Pipe(name){
 
     this.ready = false;
 
-    this.currentHandler = [];
+
+    // todo implement log
+    this.dataLog = [];
 }
 
+Pipe.prototype._stateCallback = function () {
+
+};
+
+Pipe.prototype.exception = {
+    WRONG_STEP : 'given base step doesn\'t exist in pipe structure',
+    NOT_READY : 'the pipe isn\'t ready'
+};
+
 Pipe.prototype.state = function (fn, context) {
-    var step = new PipeStep(fn, context, PipeStep.prototype.pipeStepTypes.STATE);
+    var step = new PipeStep(fn, context, this._stateCallback, PipeStep.prototype.pipeStepTypes.STATE);
 
     this.steps.push(step);
 
@@ -20,7 +40,7 @@ Pipe.prototype.state = function (fn, context) {
 };
 
 Pipe.prototype.process = function (fn, context) {
-    var step = new PipeStep(fn, context, PipeStep.prototype.pipeStepTypes.PROCESS);
+    var step = new PipeStep(fn, context, this._stateCallback, PipeStep.prototype.pipeStepTypes.PROCESS);
 
     this.steps.push(step);
 
@@ -28,50 +48,15 @@ Pipe.prototype.process = function (fn, context) {
 };
 
 Pipe.prototype.error = function (fn, context) {
-    var step = new PipeStep(fn, context, PipeStep.prototype.pipeStepTypes.ERROR_HANDLER);
+    var step = new PipeStep(fn, context, this._stateCallback, PipeStep.prototype.pipeStepTypes.ERROR_HANDLER);
 
     this.steps.push(step);
 
     return this;
 };
 
-Pipe.prototype.finishOld = function () {
-
-    var step,
-        nextStep,
-        callbacks;
-
-    this.steps.push({handler : null, fn : function(){
-
-    }});
-
-    function wrap(step, nextStep){
-        return {
-            success : function(data){
-                nextStep.fn(data, nextStep.handler)
-            },
-            error : function(){
-
-                console.log(arguments);
-            }
-        }
-    }
-
-
-    for (var i = 0; i < this.steps.length - 1; i++) {
-        step = this.steps[i];
-        nextStep = this.steps[i + 1];
-        callbacks = wrap(step, nextStep);
-        step.handler = new Flowhandler(callbacks.success, callbacks.error);
-    }
-
-    this.ready = true;
-
-    return this;
-};
-
-Pipe.prototype.finish = function (fn, context) {
-    // todo implement finish state step
+Pipe.prototype.finish = function (state) {
+    // todo implement finish step, which may change the sequencer's current state
     //this.state(function(){ });
 
     var step,
@@ -80,12 +65,13 @@ Pipe.prototype.finish = function (fn, context) {
         i;
 
     for (i = 0; i < this.steps.length; i++) {
+
         step = this.steps[i];
 
         closestProcess = this.closestProcess(step);
         closestErrorHandler = this.closestErrorHandler(step);
 
-        console.log(step, closestProcess, closestErrorHandler);
+        //console.log(step, closestProcess, closestErrorHandler);
 
         step.linkToProcess(closestProcess);
         step.linkToErrorHandler(closestErrorHandler);
@@ -103,7 +89,7 @@ Pipe.prototype.closestStep = function (base, type) {
         i;
 
     if ( index < 0 ) {
-        throw new Error('given base step doesn\'t exist in pipe structure');
+        throw new Error(this.exception.WRONG_STEP);
     }
 
     if ( this.steps.length - index < 2 ) {
@@ -136,62 +122,24 @@ Pipe.prototype.closestErrorHandler = function (base) {
 
 Pipe.prototype.run = function () {
     if (this.ready) {
-        this.unlockAll();
+        this.unlockAllSteps();
         // todo refactor this
         this.steps[0].fn(null, this.steps[0].handler);
     } else {
-        throw new Error('the pipe isn\'t ready');
+        throw new Error(this.exception.NOT_READY);
     }
 };
 
-Pipe.prototype.unlockAll = function () {
+Pipe.prototype.unlockAllSteps = function () {
     for (var i = 0; i < this.steps.length; i++) {
         // todo refactor this
         this.steps[i].handler.unlock();
     }
 };
 
-Pipe.prototype.lockAll = function () {
+Pipe.prototype.lockAllSteps = function () {
     for (var i = 0; i < this.steps.length; i++) {
         // todo refactor this
         this.steps[i].handler.unlock();
     }
 };
-
-
-
-
-
-
-var t = new Pipe('test');
-
-function cb1(data, chain) {
-    console.log(arguments);
-    var newData = 'test1';
-    chain.next(newData);
-}
-
-function cb2(data, chain) {
-    console.log(arguments);
-    var newData = data + 'test2';
-    setTimeout(function(){
-        chain.next(newData);
-
-    }, 500);
-    //chain.next(newData);
-}
-
-
-function cb3(data, chain) {
-    console.log(arguments);
-    var newData = data + 'test2';
-    //chain.next(newData);
-    chain.error(newData);
-}
-
-function handler(e){
-    console.log('error', e);
-}
-
-//t.process(cb1).process(cb2).process(cb2).finish();
-t.process(cb1).process(cb2).process(cb2).error(handler).process(cb3).finish();
