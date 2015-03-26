@@ -1,11 +1,11 @@
-function Pipe(stateName, stateCallback){
+function Pipe(stateName, changeStateCallback){
 
     if (typeof stateName !== 'string') {
         throw new Error('');
     }
 
-    if (typeof stateCallback === 'function') {
-        this._stateCallback = stateCallback;
+    if (typeof changeStateCallback === 'function') {
+        this._stateCallback = changeStateCallback;
     }
 
     this.name = stateName;
@@ -22,27 +22,36 @@ function Pipe(stateName, stateCallback){
     this.dataLog = [];
 }
 
-Pipe.prototype._stateCallback = function () {
-
-};
-
 Pipe.prototype.exception = {
     WRONG_STEP : 'given base step doesn\'t exist in pipe structure',
-    NOT_READY : 'the pipe isn\'t ready'
+    NOT_READY : 'the pipe isn\'t ready',
+    EMPTY : 'this pipe has no steps to run'
 };
 
 Pipe.prototype.state = function (fn, context) {
-    var step = new PipeStep(fn, context, this._stateCallback, PipeStep.prototype.pipeStepTypes.STATE);
 
-    this.steps.push(step);
+    var options = {
+        fn : fn,
+        context : context,
+        stateCallback : this._stateCallback,
+        type : PipeStep.prototype.pipeStepTypes.STATE
+    };
+
+    this._createStep(options);
 
     return this;
 };
 
 Pipe.prototype.process = function (fn, context) {
-    var step = new PipeStep(fn, context, this._stateCallback, PipeStep.prototype.pipeStepTypes.PROCESS);
 
-    this.steps.push(step);
+    var options = {
+        fn : fn,
+        context : context,
+        stateCallback : this._stateCallback,
+        type : PipeStep.prototype.pipeStepTypes.PROCESS
+    };
+
+    this._createStep(options);
 
     return this;
 };
@@ -51,9 +60,14 @@ Pipe.prototype.process = function (fn, context) {
 Pipe.prototype.do = Pipe.prototype.process;
 
 Pipe.prototype.error = function (fn, context) {
-    var step = new PipeStep(fn, context, this._stateCallback, PipeStep.prototype.pipeStepTypes.ERROR_HANDLER);
+    var options = {
+        fn : fn,
+        context : context,
+        stateCallback : this._stateCallback,
+        type : PipeStep.prototype.pipeStepTypes.ERROR_HANDLER
+    };
 
-    this.steps.push(step);
+    this._createStep(options);
 
     return this;
 };
@@ -125,24 +139,50 @@ Pipe.prototype.closestErrorHandler = function (base) {
 
 Pipe.prototype.run = function () {
     if (this.ready) {
-        this.unlockAllSteps();
+        this._unlockAllSteps();
         // todo refactor this
-        this.steps[0].fn(null, this.steps[0].handler);
+        this._getFirstStep().run();
     } else {
         throw new Error(this.exception.NOT_READY);
     }
 };
 
-Pipe.prototype.unlockAllSteps = function () {
+Pipe.prototype._log = function(options) {
+    return this.steps.map(function (item) {
+        return {
+            type : item.type,
+            data : item.data,
+            status : item.status
+        }
+    });
+};
+
+Pipe.prototype._unlockAllSteps = function () {
     for (var i = 0; i < this.steps.length; i++) {
         // todo refactor this
         this.steps[i].handler.unlock();
     }
 };
 
-Pipe.prototype.lockAllSteps = function () {
+Pipe.prototype._lockAllSteps = function () {
     for (var i = 0; i < this.steps.length; i++) {
         // todo refactor this
         this.steps[i].handler.unlock();
     }
+};
+
+Pipe.prototype._createStep = function(options) {
+    var step = new PipeStep(options);
+    this.steps.push(step);
+};
+
+Pipe.prototype._stateCallback = function () {
+    // stub
+};
+
+Pipe.prototype._getFirstStep = function() {
+    if ( !this.steps.length ) {
+        throw new Error(this.exception.EMPTY);
+    }
+    return this.steps[0];
 };

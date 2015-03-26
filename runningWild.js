@@ -38,5 +38,21 @@ function handler(e){
 }
 
 //t.process(cb1).process(cb2).process(cb2).finish();
-sequencer.pipe('a').process(cb1).process(cb2).process(cb2).error(handler).process(cb3).error(handler).finish();
-sequencer.pipe('b').process(cb2).process(cb2).error(handler).process(cb4).error(handler).finish();
+sequencer.pipe('a')
+    .process(cb1)
+    .process(cb2)
+    .process(cb2)
+    .error(handler)
+    .process(cb3)
+    .error(handler)
+    .finish();
+
+sequencer.pipe('b')
+    .process(cb2)
+    .process(cb2)
+    .error(handler)
+    .process(cb4)
+    .error(handler)
+    .finish();
+
+sequencer.pipe('c').finish();

@@ -1,98 +1,123 @@
-function PipeStep (fn, context, stateCallback, type){
-    if (this.checkType(type)) {
-        this.type = type;
-    }
+(function (exports){
+    function PipeStep (options){
 
-    this.context = this.checkContext(context);
-    this.fn = null;
-    this.handler = new Flowhandler(stateCallback);
-
-    if (typeof fn === 'function') {
-        this.fn = fn;
-    }
-
-    this.data = null;
-
-    this.id = this.generateId();
-}
-
-PipeStep.prototype.pipeStepTypes = {
-    PROCESS : 1,
-    ERROR_HANDLER : 2,
-    BEFORE : 3,
-    AFTER : 4,
-    STATE : 5
-};
-
-PipeStep.prototype.idBase = 0;
-
-PipeStep.prototype.generateId = function () {
-    return 'id' + this.constructor.prototype.idBase++;
-};
-
-PipeStep.prototype.checkContext = function (obj) {
-    var context;
-    if (typeof obj != 'object') {
-        context = window;
-    } else {
-        context = obj;
-    }
-    return context;
-};
-
-PipeStep.prototype.checkType = function (type) {
-    var typeFound = null,
-        value;
-
-    for (var i in this.pipeStepTypes) {
-        if (this.pipeStepTypes.hasOwnProperty(i)) {
-            value = this.pipeStepTypes[i];
-            if (value === type) {
-                typeFound = true;
-            }
+        if ( !options ) {
+            throw new Error(this.exception.NO_OPTIONS);
         }
+
+        if (this.checkType(options.type)) {
+            this.type = options.type;
+        }
+
+        this.context = this.checkContext(options.context);
+        this.fn = null;
+
+
+        this.handler = new Flowhandler(options.stateCallback);
+
+        if (typeof options.fn === 'function') {
+            this.fn = options.fn;
+        }
+
+        this.status = this.statuses.INITIAL;
+
+        this.data = null;
+
+        this.id = this.generateId();
     }
 
-    if (!typeFound) {
-        throw new Error('wrong PipeStep type was given');
-    }
-
-    return typeFound;
-};
-
-PipeStep.prototype.createHandler = function (nextCallback, errorCallback) {
-    var stateCallback = function(){
-        console.log(arguments);
+    PipeStep.prototype.exception = {
+        NO_OPTIONS : 'options required for this action',
+        WRONG_TYPE : 'wrong PipeStep type was given'
     };
 
-    this.handler = new Flowhandler(stateCallback)
-};
+    PipeStep.prototype.statuses = {
+        INITIAL : 1,
+        IN_PROCESS : 2,
+        DONE : 3,
+        ERROR : 4,
+        STATE_CHANGED : 5
+    };
 
-PipeStep.prototype._linkTo = function (pipeStep, type) {
+    PipeStep.prototype.pipeStepTypes = {
+        PROCESS : 1,
+        ERROR_HANDLER : 2,
+        BEFORE : 3,
+        AFTER : 4,
+        STATE : 5
+    };
 
-};
+    PipeStep.prototype.idBase = 0;
 
-PipeStep.prototype.linkToProcess = function (pipeStep) {
-    var self = this;
-    if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
-        return false;
-    }
+    PipeStep.prototype.run = function(data) {
+        this.fn.apply(this.context, [data, this.handler]);
+    };
 
-    this.handler.attachFunction('next', function(data){
-        self.data = data;
-        pipeStep.fn.apply(pipeStep.context, [data, pipeStep.handler]);
-    });
-};
+    PipeStep.prototype.generateId = function () {
+        return 'id' + this.constructor.prototype.idBase++;
+    };
 
-PipeStep.prototype.linkToErrorHandler = function (pipeStep) {
-    var self = this;
-    if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
-        return false;
-    }
+    PipeStep.prototype.checkContext = function (obj) {
+        var context;
+        if (typeof obj != 'object') {
+            context = this;
+        } else {
+            context = obj;
+        }
+        return context;
+    };
 
-    this.handler.attachFunction('error', function(data){
-        self.error = data;
-        pipeStep.fn.apply(pipeStep.context, [data, pipeStep.handler]);
-    });
-};
+    PipeStep.prototype.checkType = function (type) {
+        var typeFound = null,
+            value;
+
+        for (var i in this.pipeStepTypes) {
+            if (this.pipeStepTypes.hasOwnProperty(i)) {
+                value = this.pipeStepTypes[i];
+                if (value === type) {
+                    typeFound = true;
+                }
+            }
+        }
+
+        if (!typeFound) {
+            throw new Error(this.exception.WRONG_TYPE);
+        }
+
+        return typeFound;
+    };
+
+    PipeStep.prototype._linkTo = function (pipeStep, type) {
+
+    };
+
+    PipeStep.prototype.linkToProcess = function (pipeStep) {
+        var self = this;
+        if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
+            return false;
+        }
+
+        this.handler.attachFunction('next', function(data){
+            self.status = self.statuses.DONE;
+            self.data = data;
+            pipeStep.run(data);
+        });
+    };
+
+    PipeStep.prototype.linkToErrorHandler = function (pipeStep) {
+        var self = this;
+        if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
+            return false;
+        }
+
+        this.handler.attachFunction('error', function(data){
+            self.status = self.statuses.ERROR;
+            self.data = data;
+            pipeStep.run(data);
+        });
+    };
+
+    exports.PipeStep = PipeStep;
+})(this);
+
 
