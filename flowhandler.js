@@ -1,7 +1,13 @@
 function Flowhandler (stateCallback){
     this._locked = false;
 
-    this.attachFunction('state', stateCallback)
+    this.attachFunction('state', this._stateCallbackStub);
+    this.attachFunction('next', this._nextCallbackStub);
+    this.attachFunction('error', this._errorCallbackStub);
+
+    if ( typeof stateCallback === 'function' ) {
+        this.attachFunction('state', stateCallback);
+    }
 }
 
 Flowhandler.prototype._callbackNames = {
@@ -28,19 +34,17 @@ Flowhandler.prototype.state = function (data) {
     if (this._locked) return false;
     this._stateCallback(data);
     this.lock();
-
-    console.log('Flowhandler state change', data);
 };
 
-Flowhandler.prototype._nextCallback = function () {
+Flowhandler.prototype._nextCallbackStub = function () {
     // stub
 };
 
-Flowhandler.prototype._errorCallback = function () {
+Flowhandler.prototype._errorCallbackStub = function () {
     // stub
 };
 
-Flowhandler.prototype._stateCallback = function () {
+Flowhandler.prototype._stateCallbackStub = function () {
     // stub
 };
 

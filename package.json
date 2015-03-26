@@ -1,0 +1,19 @@
+{
+  "name": "state-pipe",
+  "version": "0.0.1",
+  "description": "just a small tool for logical chains based on middleware idea",
+  "main": "sequencer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Metalmastery/state-pipe.git"
+  },
+  "author": "Metalmastery",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Metalmastery/state-pipe/issues"
+  },
+  "homepage": "https://github.com/Metalmastery/state-pipe"
+}
