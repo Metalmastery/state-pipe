@@ -1,3 +1,5 @@
+var Pipe = require('./pipe');
+
 function Sequencer(){
     this.pipes = {};
     this.activePipe = null;
@@ -43,3 +45,5 @@ Sequencer.prototype._lockAll = function () {
         this.pipes[pipeName]._lockAllSteps()
     }
 };
+
+module.exports = Sequencer;

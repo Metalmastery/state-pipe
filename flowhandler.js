@@ -65,3 +65,5 @@ Flowhandler.prototype.lock = function () {
 Flowhandler.prototype.unlock = function () {
     this._locked = false;
 };
+
+module.exports = Flowhandler;

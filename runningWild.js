@@ -1,3 +1,5 @@
+var Sequencer = require('./sequencer');
+
 var sequencer = new Sequencer();
 
 function cb1(data, chain) {
@@ -56,3 +58,5 @@ sequencer.pipe('b')
     .finish();
 
 sequencer.pipe('c').finish();
+
+window.sequencer = sequencer;
