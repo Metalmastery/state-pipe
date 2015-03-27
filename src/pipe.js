@@ -1,5 +1,3 @@
-var PipeStep = require('./pipeStep');
-
 function Pipe(stateName, changeStateCallback){
 
     if (typeof stateName !== 'string') {
@@ -188,5 +186,3 @@ Pipe.prototype._getFirstStep = function() {
     }
     return this.steps[0];
 };
-
-module.exports = Pipe;

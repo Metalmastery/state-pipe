@@ -1,5 +1,3 @@
-var Flowhandler = require('./flowhandler');
-
 function PipeStep (options){
 
     if ( !options ) {
@@ -117,7 +115,3 @@ PipeStep.prototype.linkToErrorHandler = function (pipeStep) {
         pipeStep.run(data);
     });
 };
-
-module.exports = PipeStep;
-
-
