@@ -1,2 +1,2 @@
 # state-pipe
-logic chaining idea
+just a small tool for logical chains based on middleware idea
