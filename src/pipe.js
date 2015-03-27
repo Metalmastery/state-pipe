@@ -109,10 +109,9 @@ Pipe.prototype.closestStep = function (base, type) {
         throw new Error(this.exception.WRONG_STEP);
     }
 
-    if ( this.steps.length - index < 2 ) {
-        //throw new Error('no more steps in pipe structure')
-        console.log('no more steps in pipe structure');
-    }
+    //if ( this.steps.length - index < 2 ) {
+        // todo finalize this
+    //}
 
     i = index + 1;
 
