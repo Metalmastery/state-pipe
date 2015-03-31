@@ -9,7 +9,7 @@ Flow.prototype.exception = {
     NAME_DOES_NOT_EXIST : 'such state name doesn\'t exists'
 };
 
-Flow.prototype.pipe = function (name) {
+Flow.prototype.to = function (name) {
     if ( typeof name !== 'string' || !name.length ) {
         throw new Error(this.exception.WRONG_NAME);
     }
@@ -18,14 +18,14 @@ Flow.prototype.pipe = function (name) {
         throw new Error(this.exception.NAME_EXISTS);
     }
 
-    this.pipes[name] = new Pipe(name, this.to.bind(this));
+    this.pipes[name] = new Pipe(name, this.switchTo.bind(this));
 
     return this.pipes[name];
 };
 
-Flow.prototype.to = function (name) {
+Flow.prototype.switchTo = function (name) {
 
-    console.log('flow to change', name);
+    console.log('flow switchTo change', name);
 
     if (!this.pipes.hasOwnProperty(name) ) {
         throw new Error(this.exception.NAME_DOES_NOT_EXIST);

@@ -29,7 +29,7 @@ Pipe.prototype.exception = {
     EMPTY : 'this pipe has no steps to run'
 };
 
-Pipe.prototype.to = function (fn, context) {
+Pipe.prototype.switchTo = function (fn, context) {
 
     var options = {
         fn : fn,
@@ -74,8 +74,8 @@ Pipe.prototype.error = function (fn, context) {
 };
 
 Pipe.prototype.described = function (state) {
-    // todo implement described step, which may change the flow's current to
-    //this.to(function(){ });
+    // todo implement described step, which may change the flow's current switchTo
+    //this.switchTo(function(){ });
 
 
 

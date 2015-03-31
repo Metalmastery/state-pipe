@@ -12,19 +12,19 @@
 function Flowhandler (stateCallback){
     this._locked = false;
 
-    this.attachFunction('to', this._stateCallbackStub);
+    this.attachFunction('switchTo', this._stateCallbackStub);
     this.attachFunction('next', this._nextCallbackStub);
     this.attachFunction('error', this._errorCallbackStub);
 
     if ( typeof stateCallback === 'function' ) {
-        this.attachFunction('to', stateCallback);
+        this.attachFunction('switchTo', stateCallback);
     }
 }
 
 Flowhandler.prototype._callbackNames = {
     next : '_nextCallback',
     error : '_errorCallback',
-    to : '_stateCallback'
+    switchTo : '_stateCallback'
 };
 
 Flowhandler.prototype.next = function (data) {
@@ -39,7 +39,7 @@ Flowhandler.prototype.error = function (data) {
     this.lock();
 };
 
-Flowhandler.prototype.to = function (data) {
+Flowhandler.prototype.switchTo = function (data) {
    // todo implement to change
 
     if (this._locked) return false;
@@ -223,10 +223,10 @@ function Pipe(stateName, changeStateCallback){
 Pipe.prototype.exception = {
     WRONG_STEP : 'given base step doesn\'t exist in pipe structure',
     NOT_READY : 'the pipe isn\'t ready',
-    EMPTY : 'this pipe has no steps to run'
+    EMPTY : 'this pipe has no steps switchTo run'
 };
 
-Pipe.prototype.to = function (fn, context) {
+Pipe.prototype.switchTo = function (fn, context) {
 
     var options = {
         fn : fn,
@@ -271,8 +271,8 @@ Pipe.prototype.error = function (fn, context) {
 };
 
 Pipe.prototype.described = function (state) {
-    // todo implement described step, which may change the flow's current to
-    //this.to(function(){ });
+    // todo implement described step, which may change the flow's current switchTo
+    //this.switchTo(function(){ });
 
 
 
@@ -396,7 +396,7 @@ Flow.prototype.exception = {
     NAME_DOES_NOT_EXIST : 'such state name doesn\'t exists'
 };
 
-Flow.prototype.pipe = function (name) {
+Flow.prototype.to = function (name) {
     if ( typeof name !== 'string' || !name.length ) {
         throw new Error(this.exception.WRONG_NAME);
     }
@@ -405,14 +405,14 @@ Flow.prototype.pipe = function (name) {
         throw new Error(this.exception.NAME_EXISTS);
     }
 
-    this.pipes[name] = new Pipe(name, this.to.bind(this));
+    this.pipes[name] = new Pipe(name, this.switchTo.bind(this));
 
     return this.pipes[name];
 };
 
-Flow.prototype.to = function (name) {
+Flow.prototype.switchTo = function (name) {
 
-    console.log('flow to change', name);
+    console.log('flow switchTo change', name);
 
     if (!this.pipes.hasOwnProperty(name) ) {
         throw new Error(this.exception.NAME_DOES_NOT_EXIST);

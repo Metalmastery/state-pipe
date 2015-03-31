@@ -50,13 +50,13 @@ function errorHandler(data, chain){
     console.log('error', data);
 }
 
-flow.pipe('a')
+flow.to('a')
     .process(initData)
     .process(changeData)
     .process(sideEffect)
     .described();
 
-flow.pipe('b')
+flow.to('b')
     .process(initData)
     .process(changeData)
     .process(changeDataAgain)
@@ -64,13 +64,13 @@ flow.pipe('b')
     .process(sideEffect)
     .described();
 
-flow.pipe('c')
+flow.to('c')
     .described();
 
-// call one of that functions below to run sequence
+// call one of that functions below switchTo run sequence
 
-// flow.to('a');
+// flow.switchTo('a');
 
-// flow.to('b');
+// flow.switchTo('b');
 
-// flow.to('c');
+// flow.switchTo('c');

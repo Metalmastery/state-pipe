@@ -1,19 +1,19 @@
 function Flowhandler (stateCallback){
     this._locked = false;
 
-    this.attachFunction('to', this._stateCallbackStub);
+    this.attachFunction('switchTo', this._stateCallbackStub);
     this.attachFunction('next', this._nextCallbackStub);
     this.attachFunction('error', this._errorCallbackStub);
 
     if ( typeof stateCallback === 'function' ) {
-        this.attachFunction('to', stateCallback);
+        this.attachFunction('switchTo', stateCallback);
     }
 }
 
 Flowhandler.prototype._callbackNames = {
     next : '_nextCallback',
     error : '_errorCallback',
-    to : '_stateCallback'
+    switchTo : '_stateCallback'
 };
 
 Flowhandler.prototype.next = function (data) {
@@ -28,7 +28,7 @@ Flowhandler.prototype.error = function (data) {
     this.lock();
 };
 
-Flowhandler.prototype.to = function (data) {
+Flowhandler.prototype.switchTo = function (data) {
    // todo implement to change
 
     if (this._locked) return false;
