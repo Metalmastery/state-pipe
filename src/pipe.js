@@ -139,11 +139,11 @@ Pipe.prototype.closestErrorHandler = function (base) {
     return this.closestStep(base, PipeStep.prototype.pipeStepTypes.ERROR_HANDLER);
 };
 
-Pipe.prototype.run = function () {
+Pipe.prototype.run = function (data) {
     if (this.ready) {
         this._unlockAllSteps();
         // todo refactor this
-        this._getFirstStep().run();
+        this._getFirstStep().run(data);
     } else {
         throw new Error(this.exception.NOT_READY);
     }

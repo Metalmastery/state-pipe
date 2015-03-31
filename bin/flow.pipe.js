@@ -223,7 +223,7 @@ function Pipe(stateName, changeStateCallback){
 Pipe.prototype.exception = {
     WRONG_STEP : 'given base step doesn\'t exist in pipe structure',
     NOT_READY : 'the pipe isn\'t ready',
-    EMPTY : 'this pipe has no steps switchTo run'
+    EMPTY : 'this pipe has no steps to run'
 };
 
 Pipe.prototype.switchTo = function (fn, context) {
@@ -336,11 +336,11 @@ Pipe.prototype.closestErrorHandler = function (base) {
     return this.closestStep(base, PipeStep.prototype.pipeStepTypes.ERROR_HANDLER);
 };
 
-Pipe.prototype.run = function () {
+Pipe.prototype.run = function (data) {
     if (this.ready) {
         this._unlockAllSteps();
         // todo refactor this
-        this._getFirstStep().run();
+        this._getFirstStep().run(data);
     } else {
         throw new Error(this.exception.NOT_READY);
     }
@@ -410,7 +410,7 @@ Flow.prototype.to = function (name) {
     return this.pipes[name];
 };
 
-Flow.prototype.switchTo = function (name) {
+Flow.prototype.switchTo = function (name, data) {
 
     console.log('flow switchTo change', name);
 
@@ -422,7 +422,7 @@ Flow.prototype.switchTo = function (name) {
 
     this.activePipe = this.pipes[name];
 
-    this.activePipe.run();
+    this.activePipe.run(data);
 };
 
 Flow.prototype._lockAll = function () {

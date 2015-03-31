@@ -5,7 +5,8 @@ function initData(data, chain) {
     var newData = {
                 firstName : 'John',
                 secondName : 'Doe',
-                id : '1'
+                id : '1',
+                data : data
             };
     chain.next(newData);
 }

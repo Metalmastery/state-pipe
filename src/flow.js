@@ -23,7 +23,7 @@ Flow.prototype.to = function (name) {
     return this.pipes[name];
 };
 
-Flow.prototype.switchTo = function (name) {
+Flow.prototype.switchTo = function (name, data) {
 
     console.log('flow switchTo change', name);
 
@@ -35,7 +35,7 @@ Flow.prototype.switchTo = function (name) {
 
     this.activePipe = this.pipes[name];
 
-    this.activePipe.run();
+    this.activePipe.run(data);
 };
 
 Flow.prototype._lockAll = function () {
