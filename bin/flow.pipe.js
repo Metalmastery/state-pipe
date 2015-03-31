@@ -270,8 +270,8 @@ Pipe.prototype.error = function (fn, context) {
     return this;
 };
 
-Pipe.prototype.finish = function (state) {
-    // todo implement finish step, which may change the flow's current to
+Pipe.prototype.described = function (state) {
+    // todo implement described step, which may change the flow's current to
     //this.to(function(){ });
 
 

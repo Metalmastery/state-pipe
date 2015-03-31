@@ -54,7 +54,7 @@ flow.pipe('a')
     .process(initData)
     .process(changeData)
     .process(sideEffect)
-    .finish();
+    .described();
 
 flow.pipe('b')
     .process(initData)
@@ -62,10 +62,10 @@ flow.pipe('b')
     .process(changeDataAgain)
     .error(errorHandler)
     .process(sideEffect)
-    .finish();
+    .described();
 
 flow.pipe('c')
-    .finish();
+    .described();
 
 // call one of that functions below to run sequence
 
