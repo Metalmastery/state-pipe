@@ -5,26 +5,26 @@
   } else if (typeof exports === 'object') {
     module.exports = factory(require, exports, module);
   } else {
-    root.Sequencer = factory();
+    root.Flow = factory();
   }
 }(this, function(require, exports, module) {
 
 function Flowhandler (stateCallback){
     this._locked = false;
 
-    this.attachFunction('state', this._stateCallbackStub);
+    this.attachFunction('to', this._stateCallbackStub);
     this.attachFunction('next', this._nextCallbackStub);
     this.attachFunction('error', this._errorCallbackStub);
 
     if ( typeof stateCallback === 'function' ) {
-        this.attachFunction('state', stateCallback);
+        this.attachFunction('to', stateCallback);
     }
 }
 
 Flowhandler.prototype._callbackNames = {
     next : '_nextCallback',
     error : '_errorCallback',
-    state : '_stateCallback'
+    to : '_stateCallback'
 };
 
 Flowhandler.prototype.next = function (data) {
@@ -39,8 +39,8 @@ Flowhandler.prototype.error = function (data) {
     this.lock();
 };
 
-Flowhandler.prototype.state = function (data) {
-   // todo implement state change
+Flowhandler.prototype.to = function (data) {
+   // todo implement to change
 
     if (this._locked) return false;
     this._stateCallback(data);
@@ -193,6 +193,8 @@ PipeStep.prototype.linkToErrorHandler = function (pipeStep) {
         pipeStep.run(data);
     });
 };
+
+// to - to,
 function Pipe(stateName, changeStateCallback){
 
     if (typeof stateName !== 'string') {
@@ -212,6 +214,7 @@ function Pipe(stateName, changeStateCallback){
 
     this.ready = false;
 
+    this.entryData = null;
 
     // todo implement log
     this.dataLog = [];
@@ -223,7 +226,7 @@ Pipe.prototype.exception = {
     EMPTY : 'this pipe has no steps to run'
 };
 
-Pipe.prototype.state = function (fn, context) {
+Pipe.prototype.to = function (fn, context) {
 
     var options = {
         fn : fn,
@@ -268,8 +271,10 @@ Pipe.prototype.error = function (fn, context) {
 };
 
 Pipe.prototype.finish = function (state) {
-    // todo implement finish step, which may change the sequencer's current state
-    //this.state(function(){ });
+    // todo implement finish step, which may change the flow's current to
+    //this.to(function(){ });
+
+
 
     var step,
         closestErrorHandler,
@@ -304,10 +309,9 @@ Pipe.prototype.closestStep = function (base, type) {
         throw new Error(this.exception.WRONG_STEP);
     }
 
-    if ( this.steps.length - index < 2 ) {
-        //throw new Error('no more steps in pipe structure')
-        console.log('no more steps in pipe structure');
-    }
+    //if ( this.steps.length - index < 2 ) {
+        // todo finalize this
+    //}
 
     i = index + 1;
 
@@ -381,18 +385,18 @@ Pipe.prototype._getFirstStep = function() {
     }
     return this.steps[0];
 };
-function Sequencer(){
+function Flow(){
     this.pipes = {};
     this.activePipe = null;
 }
 
-Sequencer.prototype.exception = {
+Flow.prototype.exception = {
     WRONG_NAME : 'wrong state\'s name given',
     NAME_EXISTS : 'such state name already exists',
     NAME_DOES_NOT_EXIST : 'such state name doesn\'t exists'
 };
 
-Sequencer.prototype.pipe = function (name) {
+Flow.prototype.pipe = function (name) {
     if ( typeof name !== 'string' || !name.length ) {
         throw new Error(this.exception.WRONG_NAME);
     }
@@ -401,14 +405,14 @@ Sequencer.prototype.pipe = function (name) {
         throw new Error(this.exception.NAME_EXISTS);
     }
 
-    this.pipes[name] = new Pipe(name, this.state.bind(this));
+    this.pipes[name] = new Pipe(name, this.to.bind(this));
 
     return this.pipes[name];
 };
 
-Sequencer.prototype.state = function (name) {
+Flow.prototype.to = function (name) {
 
-    console.log('sequencer state change', name);
+    console.log('flow to change', name);
 
     if (!this.pipes.hasOwnProperty(name) ) {
         throw new Error(this.exception.NAME_DOES_NOT_EXIST);
@@ -421,11 +425,11 @@ Sequencer.prototype.state = function (name) {
     this.activePipe.run();
 };
 
-Sequencer.prototype._lockAll = function () {
+Flow.prototype._lockAll = function () {
     for (var pipeName in this.pipes) {
         this.pipes[pipeName]._lockAllSteps()
     }
 };
-return Sequencer;
+return Flow;
 
 }));

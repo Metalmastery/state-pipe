@@ -17,6 +17,7 @@ function Pipe(stateName, changeStateCallback){
 
     this.ready = false;
 
+    this.entryData = null;
 
     // todo implement log
     this.dataLog = [];
@@ -28,7 +29,7 @@ Pipe.prototype.exception = {
     EMPTY : 'this pipe has no steps to run'
 };
 
-Pipe.prototype.state = function (fn, context) {
+Pipe.prototype.to = function (fn, context) {
 
     var options = {
         fn : fn,
@@ -73,8 +74,10 @@ Pipe.prototype.error = function (fn, context) {
 };
 
 Pipe.prototype.finish = function (state) {
-    // todo implement finish step, which may change the sequencer's current state
-    //this.state(function(){ });
+    // todo implement finish step, which may change the flow's current to
+    //this.to(function(){ });
+
+
 
     var step,
         closestErrorHandler,

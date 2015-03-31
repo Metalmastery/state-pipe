@@ -1,15 +1,15 @@
-function Sequencer(){
+function Flow(){
     this.pipes = {};
     this.activePipe = null;
 }
 
-Sequencer.prototype.exception = {
+Flow.prototype.exception = {
     WRONG_NAME : 'wrong state\'s name given',
     NAME_EXISTS : 'such state name already exists',
     NAME_DOES_NOT_EXIST : 'such state name doesn\'t exists'
 };
 
-Sequencer.prototype.pipe = function (name) {
+Flow.prototype.pipe = function (name) {
     if ( typeof name !== 'string' || !name.length ) {
         throw new Error(this.exception.WRONG_NAME);
     }
@@ -18,14 +18,14 @@ Sequencer.prototype.pipe = function (name) {
         throw new Error(this.exception.NAME_EXISTS);
     }
 
-    this.pipes[name] = new Pipe(name, this.state.bind(this));
+    this.pipes[name] = new Pipe(name, this.to.bind(this));
 
     return this.pipes[name];
 };
 
-Sequencer.prototype.state = function (name) {
+Flow.prototype.to = function (name) {
 
-    console.log('sequencer state change', name);
+    console.log('flow to change', name);
 
     if (!this.pipes.hasOwnProperty(name) ) {
         throw new Error(this.exception.NAME_DOES_NOT_EXIST);
@@ -38,7 +38,7 @@ Sequencer.prototype.state = function (name) {
     this.activePipe.run();
 };
 
-Sequencer.prototype._lockAll = function () {
+Flow.prototype._lockAll = function () {
     for (var pipeName in this.pipes) {
         this.pipes[pipeName]._lockAllSteps()
     }

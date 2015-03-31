@@ -1,4 +1,4 @@
-var sequencer = new Sequencer();
+var flow = new Flow();
 
 // middleware which creates initial data
 function initData(data, chain) {
@@ -50,13 +50,13 @@ function errorHandler(data, chain){
     console.log('error', data);
 }
 
-sequencer.pipe('a')
+flow.pipe('a')
     .process(initData)
     .process(changeData)
     .process(sideEffect)
     .finish();
 
-sequencer.pipe('b')
+flow.pipe('b')
     .process(initData)
     .process(changeData)
     .process(changeDataAgain)
@@ -64,13 +64,13 @@ sequencer.pipe('b')
     .process(sideEffect)
     .finish();
 
-sequencer.pipe('c')
+flow.pipe('c')
     .finish();
 
 // call one of that functions below to run sequence
 
-// sequencer.state('a');
+// flow.to('a');
 
-// sequencer.state('b');
+// flow.to('b');
 
-// sequencer.state('c');
+// flow.to('c');
