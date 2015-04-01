@@ -92,7 +92,8 @@ PipeStep.prototype._linkTo = function (pipeStep, type) {
 
 PipeStep.prototype.linkToProcess = function (pipeStep) {
     var self = this;
-    if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
+    //if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
+    if ( !pipeStep || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
         return false;
     }
 
@@ -105,7 +106,8 @@ PipeStep.prototype.linkToProcess = function (pipeStep) {
 
 PipeStep.prototype.linkToErrorHandler = function (pipeStep) {
     var self = this;
-    if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
+    if ( !pipeStep || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
+    //if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
         return false;
     }
 

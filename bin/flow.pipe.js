@@ -170,7 +170,8 @@ PipeStep.prototype._linkTo = function (pipeStep, type) {
 
 PipeStep.prototype.linkToProcess = function (pipeStep) {
     var self = this;
-    if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
+    //if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
+    if ( !pipeStep || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
         return false;
     }
 
@@ -183,7 +184,8 @@ PipeStep.prototype.linkToProcess = function (pipeStep) {
 
 PipeStep.prototype.linkToErrorHandler = function (pipeStep) {
     var self = this;
-    if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
+    if ( !pipeStep || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
+    //if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
         return false;
     }
 
@@ -212,7 +214,8 @@ function Pipe(stateName, changeStateCallback){
 
     this.steps = [];
 
-    this.ready = false;
+    this.isReady = false;
+    this.isAfterCallbackApplied = false;
 
     this.entryData = null;
 
@@ -223,7 +226,8 @@ function Pipe(stateName, changeStateCallback){
 Pipe.prototype.exception = {
     WRONG_STEP : 'given base step doesn\'t exist in pipe structure',
     NOT_READY : 'the pipe isn\'t ready',
-    EMPTY : 'this pipe has no steps to run'
+    EMPTY : 'this pipe has no steps to run',
+    AFTER_CALLBACK_EXISTS : 'you can\'t register more than one AFTER callback'
 };
 
 Pipe.prototype.switchTo = function (fn, context) {
@@ -257,6 +261,24 @@ Pipe.prototype.process = function (fn, context) {
 // alias
 Pipe.prototype.do = Pipe.prototype.process;
 
+Pipe.prototype.after = function (fn, context) {
+
+    if (this.isAfterCallbackApplied) {
+        throw new Error(this.exception.AFTER_CALLBACK_EXISTS);
+    }
+
+    var options = {
+        fn : fn,
+        context : context,
+        stateCallback : this._stateCallback,
+        type : PipeStep.prototype.pipeStepTypes.AFTER
+    };
+
+    this._createStep(options);
+
+    return this;
+};
+
 Pipe.prototype.error = function (fn, context) {
     var options = {
         fn : fn,
@@ -271,10 +293,8 @@ Pipe.prototype.error = function (fn, context) {
 };
 
 Pipe.prototype.described = function (state) {
-    // todo implement described step, which may change the flow's current switchTo
+    // todo implement described step, which may change the flow's current state
     //this.switchTo(function(){ });
-
-
 
     var step,
         closestErrorHandler,
@@ -294,7 +314,7 @@ Pipe.prototype.described = function (state) {
         step.linkToErrorHandler(closestErrorHandler);
     }
 
-    this.ready = true;
+    this.isReady = true;
 
     return this;
 };
@@ -337,10 +357,11 @@ Pipe.prototype.closestErrorHandler = function (base) {
 };
 
 Pipe.prototype.run = function (data) {
-    if (this.ready) {
+    if (this.isReady) {
         this._unlockAllSteps();
         // todo refactor this
-        this._getFirstStep().run(data);
+        this._findStepByType(PipeStep.prototype.pipeStepTypes.PROCESS)
+            .run(data);
     } else {
         throw new Error(this.exception.NOT_READY);
     }
@@ -375,15 +396,39 @@ Pipe.prototype._createStep = function(options) {
     this.steps.push(step);
 };
 
+Pipe.prototype._stateCallbackWrapper = function () {
+    // stub
+    this.stateCallback();
+};
+
 Pipe.prototype._stateCallback = function () {
     // stub
 };
 
-Pipe.prototype._getFirstStep = function() {
+//Pipe.prototype._getFirstStep = function () {
+//    if ( !this.steps.length ) {
+//        throw new Error(this.exception.EMPTY);
+//    }
+//    return this.steps[0];
+//};
+
+Pipe.prototype._findStepByType = function (type, backwardSearch, start) {
     if ( !this.steps.length ) {
         throw new Error(this.exception.EMPTY);
     }
-    return this.steps[0];
+    var step = null,
+        searchStart = start || 0,
+        increment = backwardSearch ? -1 : 1,
+        i = searchStart;
+
+    while ( !step && i >= 0 && i < this.steps.length ) {
+        if (this.steps[i].type === type) {
+            step = this.steps[i]
+        }
+        i += increment;
+    }
+
+    return step;
 };
 function Flow(){
     this.pipes = {};
@@ -393,7 +438,7 @@ function Flow(){
 Flow.prototype.exception = {
     WRONG_NAME : 'wrong state\'s name given',
     NAME_EXISTS : 'such state name already exists',
-    NAME_DOES_NOT_EXIST : 'such state name doesn\'t exists'
+    NAME_DOES_NOT_EXIST : 'such state name doesn\'t exist'
 };
 
 Flow.prototype.to = function (name) {
@@ -412,8 +457,6 @@ Flow.prototype.to = function (name) {
 
 Flow.prototype.switchTo = function (name, data) {
 
-    console.log('flow switchTo change', name);
-
     if (!this.pipes.hasOwnProperty(name) ) {
         throw new Error(this.exception.NAME_DOES_NOT_EXIST);
     }
@@ -427,7 +470,9 @@ Flow.prototype.switchTo = function (name, data) {
 
 Flow.prototype._lockAll = function () {
     for (var pipeName in this.pipes) {
-        this.pipes[pipeName]._lockAllSteps()
+        if (this.pipes.hasOwnProperty(pipeName)) {
+            this.pipes[pipeName]._lockAllSteps();
+        }
     }
 };
 return Flow;

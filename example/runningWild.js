@@ -39,6 +39,7 @@ function changeDataAgain(data, chain) {
 
 // middleware which has side effect like XHR or DOM rendering
 function sideEffect(data, chain){
+    console.log('side effect');
     var text = JSON.stringify(data, null, 4),
         div = document.createElement('div');
     div.innerText = text;
@@ -49,6 +50,7 @@ function sideEffect(data, chain){
 // middleware which handles possible error in any previous step
 function errorHandler(data, chain){
     console.log('error', data);
+    chain.next();
 }
 
 flow.to('a')
@@ -57,7 +59,9 @@ flow.to('a')
     .process(sideEffect)
     .described();
 
+
 flow.to('b')
+    .error(errorHandler)
     .process(initData)
     .process(changeData)
     .process(changeDataAgain)

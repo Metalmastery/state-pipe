@@ -6,7 +6,7 @@ function Flow(){
 Flow.prototype.exception = {
     WRONG_NAME : 'wrong state\'s name given',
     NAME_EXISTS : 'such state name already exists',
-    NAME_DOES_NOT_EXIST : 'such state name doesn\'t exists'
+    NAME_DOES_NOT_EXIST : 'such state name doesn\'t exist'
 };
 
 Flow.prototype.to = function (name) {
@@ -25,8 +25,6 @@ Flow.prototype.to = function (name) {
 
 Flow.prototype.switchTo = function (name, data) {
 
-    console.log('flow switchTo change', name);
-
     if (!this.pipes.hasOwnProperty(name) ) {
         throw new Error(this.exception.NAME_DOES_NOT_EXIST);
     }
@@ -40,6 +38,8 @@ Flow.prototype.switchTo = function (name, data) {
 
 Flow.prototype._lockAll = function () {
     for (var pipeName in this.pipes) {
-        this.pipes[pipeName]._lockAllSteps()
+        if (this.pipes.hasOwnProperty(pipeName)) {
+            this.pipes[pipeName]._lockAllSteps();
+        }
     }
 };
