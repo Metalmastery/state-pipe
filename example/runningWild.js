@@ -53,10 +53,15 @@ function errorHandler(data, chain){
     chain.next();
 }
 
+function after () {
+    console.log('AFTER');
+}
+
 flow.to('a')
     .process(initData)
     .process(changeData)
     .process(sideEffect)
+    .after(after)
     .described();
 
 

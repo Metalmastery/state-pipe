@@ -68,6 +68,8 @@ Pipe.prototype.after = function (fn, context) {
         throw new Error(this.exception.AFTER_CALLBACK_EXISTS);
     }
 
+    this.isAfterCallbackApplied = true;
+
     var options = {
         fn : fn,
         context : context,
@@ -102,6 +104,7 @@ Pipe.prototype.described = function (state) {
     var step,
         closestErrorHandler,
         closestProcess,
+        afterStep,
         i;
 
     for (i = 0; i < this.steps.length; i++) {
@@ -114,7 +117,12 @@ Pipe.prototype.described = function (state) {
         // todo if there is no closest error handler - link step to ?
         // todo if there is no closest process - link step to finish step
 
-        //console.log(step, closestProcess, closestErrorHandler);
+        console.log(i, step, closestProcess, closestErrorHandler);
+
+        if ( !closestProcess ) {
+            afterStep = this.getAfterStep();
+            console.log('looks like the last step', afterStep);
+        }
 
         step.linkToProcess(closestProcess);
         step.linkToErrorHandler(closestErrorHandler);
@@ -160,6 +168,14 @@ Pipe.prototype.closestProcess = function (base) {
 
 Pipe.prototype.closestErrorHandler = function (base) {
     return this.closestStep(base, PipeStep.prototype.pipeStepTypes.ERROR_HANDLER);
+};
+
+Pipe.prototype.getAfterStep = function () {
+    var after = null;
+    if ( this.isAfterCallbackApplied ) {
+        after = this._findStepByType(PipeStep.prototype.pipeStepTypes.AFTER);
+    }
+    return after;
 };
 
 Pipe.prototype.run = function (data) {
