@@ -9,8 +9,9 @@
   }
 }(this, function(require, exports, module) {
 
-function Flowhandler (){
+function Flowhandler (name){
     this._locked = false;
+    this._parentPipeName = name;
 
     this.attachFunction('switchTo', this._stateCallbackStub);
     this.attachFunction('next', this._nextCallbackStub);
@@ -25,6 +26,10 @@ Flowhandler.prototype._callbackNames = {
     next : '_nextCallback',
     error : '_errorCallback',
     switchTo : '_stateCallback'
+};
+
+Flowhandler.prototype.getCurrentState = function() {
+	return this._parentPipeName;
 };
 
 Flowhandler.prototype.next = function (data) {
@@ -90,7 +95,7 @@ function PipeStep (options){
     this.fn = null;
 
 
-    this.handler = new Flowhandler();
+    this.handler = new Flowhandler(options.name);
 
     this.switchStateCallback = options.stateCallback;
 
@@ -470,6 +475,8 @@ Pipe.prototype._lockAllSteps = function () {
 };
 
 Pipe.prototype._createStep = function(options) {
+    // todo refactor this to _extend
+    options.name = this.name;
     var step = new PipeStep(options);
     this.steps.push(step);
 };

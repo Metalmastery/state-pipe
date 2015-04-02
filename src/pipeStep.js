@@ -12,7 +12,7 @@ function PipeStep (options){
     this.fn = null;
 
 
-    this.handler = new Flowhandler();
+    this.handler = new Flowhandler(options.name);
 
     this.switchStateCallback = options.stateCallback;
 

@@ -2,7 +2,7 @@ var flow = new Flow();
 
 // middleware which creates initial data
 function initData(data, chain) {
-    console.log('initData');
+    console.log('initData', chain.getCurrentState());
     var newData = {
                 firstName : 'John',
                 secondName : 'Doe',

@@ -236,6 +236,8 @@ Pipe.prototype._lockAllSteps = function () {
 };
 
 Pipe.prototype._createStep = function(options) {
+    // todo refactor this to _extend
+    options.name = this.name;
     var step = new PipeStep(options);
     this.steps.push(step);
 };
