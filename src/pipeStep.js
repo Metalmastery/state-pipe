@@ -12,7 +12,9 @@ function PipeStep (options){
     this.fn = null;
 
 
-    this.handler = new Flowhandler(options.stateCallback);
+    this.handler = new Flowhandler();
+
+    this.switchStateCallback = options.stateCallback;
 
     if (typeof options.fn === 'function') {
         this.fn = options.fn;
@@ -49,6 +51,7 @@ PipeStep.prototype.pipeStepTypes = {
 PipeStep.prototype.idBase = 0;
 
 PipeStep.prototype.run = function(data) {
+    console.log('pipestep run');
     this.fn.apply(this.context, [data, this.handler]);
 };
 
@@ -91,9 +94,18 @@ PipeStep.prototype._linkTo = function (pipeStep, type) {
 };
 
 PipeStep.prototype.linkToProcess = function (pipeStep) {
-    var self = this;
-    //if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
-    if ( !pipeStep || pipeStep.type !== this.pipeStepTypes.PROCESS ) {
+    var self = this,
+        isProcess,
+        isAfterCallback;
+
+    if ( !pipeStep ) {
+        return false;
+    }
+
+    isProcess = pipeStep.type === this.pipeStepTypes.PROCESS;
+    isAfterCallback = pipeStep.type === this.pipeStepTypes.AFTER;
+
+    if (!isProcess && !isAfterCallback) {
         return false;
     }
 
@@ -105,9 +117,16 @@ PipeStep.prototype.linkToProcess = function (pipeStep) {
 };
 
 PipeStep.prototype.linkToErrorHandler = function (pipeStep) {
-    var self = this;
-    if ( !pipeStep || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
-    //if ( !pipeStep || this.type !== this.pipeStepTypes.PROCESS || pipeStep.type !== this.pipeStepTypes.ERROR_HANDLER ) {
+    var self = this,
+        isErrorHandler;
+
+    if ( !pipeStep ) {
+        return false;
+    }
+
+    isErrorHandler = pipeStep.type === this.pipeStepTypes.ERROR_HANDLER;
+
+    if ( !isErrorHandler ) {
         return false;
     }
 
@@ -116,6 +135,28 @@ PipeStep.prototype.linkToErrorHandler = function (pipeStep) {
         self.data = data;
         pipeStep.run(data);
     });
+};
+
+PipeStep.prototype.attachStateSwitchCallback = function(pipeStep) {
+    var self = this;
+    console.log('attachStateSwitchCallback', pipeStep);
+
+
+
+    this.handler.attachFunction('switchTo', function (data) {
+        self.status = self.statuses.STATE_CHANGED;
+        self.data = data;
+        if ( pipeStep instanceof PipeStep ) {
+            pipeStep.handler.attachFunction('next', function (){
+                self.switchStateCallback(data);
+            });
+            pipeStep.run();
+        } else {
+            self.switchStateCallback(data);
+        }
+        console.log('switchTo');
+
+    })
 };
 
 // to - to,

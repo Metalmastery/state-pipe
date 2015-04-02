@@ -2,6 +2,7 @@ var flow = new Flow();
 
 // middleware which creates initial data
 function initData(data, chain) {
+    console.log('initData');
     var newData = {
                 firstName : 'John',
                 secondName : 'Doe',
@@ -13,6 +14,7 @@ function initData(data, chain) {
 
 // middleware which changes data for further purposes
 function changeData(data, chain) {
+    console.log('changeData');
     var newData = {
             user : data,
             posts : [
@@ -28,12 +30,16 @@ function changeData(data, chain) {
 
 // middleware which fails the chain
 function changeDataAgain(data, chain) {
+    console.log('changeDataAgain');
     try {
     // something goes wrong here
         var newData = data.wrongField.completelyWrongWayToDoStuff * 2;
-        chain.next(newData);
+        //chain.next(newData);
     } catch (e) {
+        console.log(chain._locked);
+        //chain.next(e);
         chain.error(e);
+        window.chain = chain;
     }
 }
 
@@ -44,34 +50,41 @@ function sideEffect(data, chain){
         div = document.createElement('div');
     div.innerText = text;
     document.body.appendChild(div);
-    chain.next();
+    chain.next(data);
 }
 
 // middleware which handles possible error in any previous step
-function errorHandler(data, chain){
+function errorHandlerToContinue(data, chain){
     console.log('error', data);
     chain.next();
 }
 
-function after () {
-    console.log('AFTER');
+function errorHandlerToChangeState(data, chain){
+    console.log('error', data);
+    chain.switchTo('a');
+}
+
+function after (data, chain) {
+    console.log('AFTER', data);
+    chain.next();
 }
 
 flow.to('a')
+    .after(after)
     .process(initData)
     .process(changeData)
     .process(sideEffect)
-    .after(after)
     .described();
 
-
 flow.to('b')
-    .error(errorHandler)
+    //.error(errorHandlerToContinue)
     .process(initData)
     .process(changeData)
     .process(changeDataAgain)
-    .error(errorHandler)
-    .process(sideEffect)
+    //.error(errorHandlerToContinue)
+    .error(errorHandlerToChangeState)
+    //.process(sideEffect)
+    .after(after)
     .described();
 
 flow.to('c')
