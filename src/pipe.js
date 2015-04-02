@@ -120,7 +120,6 @@ Pipe.prototype.described = function (state) {
 
     if ( this.isAfterCallbackApplied ) {
         afterStep = this.getAfterStep();
-        console.log('described', afterStep);
     }
 
     for (i = 0; i < this.steps.length; i++) {
@@ -202,6 +201,8 @@ Pipe.prototype.getAfterStep = function () {
 Pipe.prototype.run = function (data) {
     if (this.isReady) {
         this._unlockAllSteps();
+        this.isReady = false;
+        this.described();
         // todo refactor this
         this._findStepByType(PipeStep.prototype.pipeStepTypes.PROCESS)
             .run(data);

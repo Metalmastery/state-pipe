@@ -17,25 +17,23 @@ Flowhandler.prototype._callbackNames = {
 };
 
 Flowhandler.prototype.next = function (data) {
-    console.log('next');
     if (this._locked) return false;
     this.lock();
     this._nextCallback(data);
 };
 
 Flowhandler.prototype.error = function (data) {
-    console.log('error');
     if (this._locked) return false;
     this.lock();
     this._errorCallback(data);
 };
 
-Flowhandler.prototype.switchTo = function (data) {
+Flowhandler.prototype.switchTo = function (state, data) {
    // todo implement to change
 
     if (this._locked) return false;
     this.lock();
-    this._stateCallback(data);
+    this._stateCallback(state, data);
 };
 
 Flowhandler.prototype._nextCallbackStub = function () {
@@ -44,7 +42,6 @@ Flowhandler.prototype._nextCallbackStub = function () {
 
 Flowhandler.prototype._errorCallbackStub = function () {
     // stub
-    console.log('_errorCallbackStub');
 };
 
 Flowhandler.prototype._stateCallbackStub = function () {
@@ -62,11 +59,9 @@ Flowhandler.prototype.attachFunction = function (name, fn) {
 };
 
 Flowhandler.prototype.lock = function () {
-    console.log('lock');
     this._locked = true;
 };
 
 Flowhandler.prototype.unlock = function () {
-    console.log('unlock');
     this._locked = false;
 };

@@ -61,7 +61,7 @@ function errorHandlerToContinue(data, chain){
 
 function errorHandlerToChangeState(data, chain){
     console.log('error', data);
-    chain.switchTo('a');
+    chain.switchTo('a', 'testestestetss');
 }
 
 function after (data, chain) {

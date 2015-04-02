@@ -51,7 +51,6 @@ PipeStep.prototype.pipeStepTypes = {
 PipeStep.prototype.idBase = 0;
 
 PipeStep.prototype.run = function(data) {
-    console.log('pipestep run');
     this.fn.apply(this.context, [data, this.handler]);
 };
 
@@ -139,23 +138,18 @@ PipeStep.prototype.linkToErrorHandler = function (pipeStep) {
 
 PipeStep.prototype.attachStateSwitchCallback = function(pipeStep) {
     var self = this;
-    console.log('attachStateSwitchCallback', pipeStep);
 
-
-
-    this.handler.attachFunction('switchTo', function (data) {
+    this.handler.attachFunction('switchTo', function (state, data) {
         self.status = self.statuses.STATE_CHANGED;
         self.data = data;
         if ( pipeStep instanceof PipeStep ) {
             pipeStep.handler.attachFunction('next', function (){
-                self.switchStateCallback(data);
+                self.switchStateCallback(state, data);
             });
             pipeStep.run();
         } else {
-            self.switchStateCallback(data);
+            self.switchStateCallback(state, data);
         }
-        console.log('switchTo');
-
     })
 };
 
